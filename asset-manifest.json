@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/static/css/main.00980ad0.css",
-    "main.js": "/static/js/main.bd870bcd.js",
-    "static/media/logo.png": "/static/media/logo.4764d5b602aed704dc6b.png",
-    "index.html": "/index.html",
-    "main.00980ad0.css.map": "/static/css/main.00980ad0.css.map",
-    "main.bd870bcd.js.map": "/static/js/main.bd870bcd.js.map"
+    "main.css": "/tr7-nft-marketplace/static/css/main.00980ad0.css",
+    "main.js": "/tr7-nft-marketplace/static/js/main.e2da137f.js",
+    "static/media/logo.png": "/tr7-nft-marketplace/static/media/logo.4764d5b602aed704dc6b.png",
+    "index.html": "/tr7-nft-marketplace/index.html",
+    "main.00980ad0.css.map": "/tr7-nft-marketplace/static/css/main.00980ad0.css.map",
+    "main.e2da137f.js.map": "/tr7-nft-marketplace/static/js/main.e2da137f.js.map"
   },
   "entrypoints": [
     "static/css/main.00980ad0.css",
-    "static/js/main.bd870bcd.js"
+    "static/js/main.e2da137f.js"
   ]
 }
