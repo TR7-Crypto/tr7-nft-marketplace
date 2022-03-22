@@ -14,18 +14,29 @@ const Navigation = ({ web3Handler, account }) => {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to={`${HomePageSlag}/`}>
-              Home
-            </Nav.Link>
-            <Nav.Link as={Link} to={`${HomePageSlag}/create`}>
-              Create
-            </Nav.Link>
-            <Nav.Link as={Link} to={`${HomePageSlag}/my-listed-items`}>
-              My Listed Items
-            </Nav.Link>
-            <Nav.Link as={Link} to={`${HomePageSlag}/my-purchases`}>
-              My Purchases
-            </Nav.Link>
+            <Button className="mx-1" variant="">
+              <Nav.Link as={Link} to={`${HomePageSlag}/`}>
+                Market
+              </Nav.Link>
+            </Button>
+            {"  "}
+            <Button className="mx-1" variant="">
+              <Nav.Link as={Link} to={`${HomePageSlag}/create`}>
+                Mint NFT
+              </Nav.Link>
+            </Button>
+            {"  "}
+            <Button className="mx-1" variant="">
+              <Nav.Link as={Link} to={`${HomePageSlag}/my-listed-items`}>
+                Your Listed NFTs
+              </Nav.Link>
+            </Button>
+            {"  "}
+            <Button className="mx-1" variant="">
+              <Nav.Link as={Link} to={`${HomePageSlag}/my-purchases`}>
+                Your Purchased NFTs
+              </Nav.Link>
+            </Button>
           </Nav>
           <Nav>
             {account ? (
