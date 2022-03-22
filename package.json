@@ -1,5 +1,5 @@
 {
-  "homepage": "https://tr7-crypto.github.io/tr7-nft-marketplace",
+  "homepage": "https://tr7-crypto.github.io/tr7-nft-marketplace/",
   "name": "starter_kit",
   "version": "0.2.0",
   "private": false,
@@ -25,10 +25,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "deploy": "npx hardhat run src/backend/scripts/deploy.js --network localhost",
+    "deploy-local": "npx hardhat run src/backend/scripts/deploy.js --network localhost",
     "deploy-ropsten": "npx hardhat run src/backend/scripts/deploy.js --network ropsten",
     "predeploy": "npm run build",
-    "deploy-frontend": "gh-pages -d build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
