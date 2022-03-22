@@ -15,7 +15,7 @@ import Home from "./Home";
 import Create from "./Create";
 import MyListedItems from "./MyListedItems";
 import MyPurchases from "./MyPurchases";
-
+import { HomePageSlag } from "./Home";
 function App() {
   const [loading, $loading] = useState(true);
   const [account, $account] = useState(null);
@@ -64,15 +64,15 @@ function App() {
         ) : (
           <Routes>
             <Route
-              path="/"
+              path={`${HomePageSlag}/`}
               element={<Home marketplace={marketplace} nft={nft} />}
             />
             <Route
-              path="/create"
+              path={`${HomePageSlag}/create`}
               element={<Create marketplace={marketplace} nft={nft} />}
             />
             <Route
-              path="/my-listed-items"
+              path={`${HomePageSlag}/my-listed-items`}
               element={
                 <MyListedItems
                   marketplace={marketplace}
@@ -82,7 +82,7 @@ function App() {
               }
             />
             <Route
-              path="/my-purchases"
+              path={`${HomePageSlag}/my-purchases`}
               element={
                 <MyPurchases
                   marketplace={marketplace}

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { Row, Col, Card, Button } from "react-bootstrap";
 
+export const HomePageSlag = "/tr7-nft-marketplace";
+
 const Home = ({ marketplace, nft }) => {
   const [items, $items] = useState([]);
   const [loading, $loading] = useState(true);
