@@ -1,3 +1,4 @@
+const { ethers } = require("hardhat");
 const { expect } = require("chai");
 const exp = require("constants");
 const toWei = (num) => ethers.utils.parseEther(num.toString());

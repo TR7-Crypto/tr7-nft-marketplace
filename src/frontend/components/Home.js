@@ -9,7 +9,7 @@ const Home = ({ marketplace, nft }) => {
   const loadMarketplaceItems = async () => {
     const itemCount = await marketplace.itemCount();
     let items = [];
-    // console.log("itemCount ", itemCount);
+    console.log("itemCount ", itemCount);
     for (let i = 1; i <= itemCount; i++) {
       // console.log("try load item", i);
       try {
