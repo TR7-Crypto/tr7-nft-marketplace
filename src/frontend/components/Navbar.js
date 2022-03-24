@@ -1,3 +1,4 @@
+import React from "react";
 import { Navbar, Nav, Button, Container } from "react-bootstrap";
 import market from "./tr7-logo-001.png";
 import { Link } from "react-router-dom";

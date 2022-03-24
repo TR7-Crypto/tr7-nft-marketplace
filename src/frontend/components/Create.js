@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
 import { Row, Form, Button, Spinner, Modal } from "react-bootstrap";
 import { create as ipfsHttpClient } from "ipfs-http-client";
@@ -41,6 +41,7 @@ const MintingModal = ({ mintState }) => {
 
 const Create = ({ marketplace, nft }) => {
   const [image, $image] = useState("");
+  const [type, $type] = useState("");
   const [price, $price] = useState(null);
   const [name, $name] = useState("");
   const [description, $description] = useState("");
@@ -57,6 +58,9 @@ const Create = ({ marketplace, nft }) => {
         const result = await client.add(file);
         console.log(result);
         $image(`https://ipfs.infura.io/ipfs/${result.path}`);
+        let type = file.name.split(".").pop();
+        console.log("file type", type);
+        $type(type);
       } catch (error) {
         console.log("ipfs image upload error:", error);
       }
@@ -77,8 +81,10 @@ const Create = ({ marketplace, nft }) => {
 
     if (!image || !price || !name || !description) return;
     try {
+      const json = JSON.stringify({ image, type, name, description });
+      console.log("json scheme:", json);
       const result = await client.add(
-        JSON.stringify({ image, name, description })
+        JSON.stringify({ image, type, name, description })
       );
       mintThenList(result);
     } catch (error) {
@@ -86,7 +92,7 @@ const Create = ({ marketplace, nft }) => {
     }
   };
   const mintThenList = async (result) => {
-    console.log("mint then list");
+    console.log("mint then list", result);
     const uri = `https://ipfs.infura.io/ipfs/${result.path}`;
     // mint nft
     $mintState("minting NFT...");

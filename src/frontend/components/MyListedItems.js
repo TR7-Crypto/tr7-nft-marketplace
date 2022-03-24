@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
 
 function renderSoldItems(items) {

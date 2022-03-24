@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import { ethers } from "ethers";
 const MyPurchases = ({ marketplace, nft, account }) => {

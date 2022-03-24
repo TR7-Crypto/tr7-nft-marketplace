@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { Row, Col, Card, Button } from "react-bootstrap";
-
+import NFTCard from "./GUI/Component/Common/NFTCard";
 export const HomePageSlag = "/tr7-nft-marketplace";
 
 const Home = ({ marketplace, nft }) => {
@@ -24,6 +24,7 @@ const Home = ({ marketplace, nft }) => {
           const response = await fetch(uri);
           // console.log("response ", i, response);
           const metadata = await response.json();
+          console.log("json scheme:", metadata);
           // console.log("item", i, "json", metadata);
           // get total price of item (item price + fee)
           const totalPrice = await marketplace.getTotalPrice(item.itemId);
@@ -36,6 +37,7 @@ const Home = ({ marketplace, nft }) => {
             name: metadata.name,
             description: metadata.description,
             image: metadata.image,
+            type: metadata.type,
           });
         }
       } catch (error) {
@@ -70,24 +72,7 @@ const Home = ({ marketplace, nft }) => {
           <Row xs={1} md={2} lg={4} className="g-4 py-5">
             {items.map((item, idx) => (
               <Col key={idx} className="overflow-hidden">
-                <Card>
-                  <Card.Img variant="top" src={item.image} />
-                  <Card.Body color="secondary">
-                    <Card.Title>{item.name}</Card.Title>
-                    <Card.Text>{item.description}</Card.Text>
-                  </Card.Body>
-                  <Card.Footer>
-                    <div className="d-grid">
-                      <Button
-                        onClick={() => buyMarketItem(item)}
-                        variant="primary"
-                        size="lg"
-                      >
-                        Buy for {ethers.utils.formatEther(item.totalPrice)} ETH
-                      </Button>
-                    </div>
-                  </Card.Footer>
-                </Card>
+                <NFTCard item={item} buyMarketItem={buyMarketItem} />
               </Col>
             ))}
           </Row>
