@@ -69,7 +69,7 @@ const Home = ({ marketplace, nft }) => {
     <div className="flex justify-content">
       {items.length > 0 ? (
         <div className="px-5 container">
-          <Row xs={1} md={2} lg={4} className="g-4 py-5">
+          <Row xs={1} sm={2} xl={4} className="g-4 py-5">
             {items.map((item, idx) => (
               <Col key={idx} className="overflow-hidden">
                 <NFTCard item={item} buyMarketItem={buyMarketItem} />
