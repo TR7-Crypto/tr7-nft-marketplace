@@ -1,6 +1,11 @@
 import React, { useRef, useEffect, Suspense } from "react";
-import { act, Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF, useAnimations, OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import {
+  useGLTF,
+  useAnimations,
+  OrbitControls,
+  Stage,
+} from "@react-three/drei";
 import { Html, useProgress } from "@react-three/drei";
 
 function Loader() {
@@ -28,7 +33,7 @@ function Model({ url, ...props }) {
   return (
     <group ref={ref} {...props} dispose={null}>
       <Suspense fallback={<Loader />}>
-        <primitive object={scene} {...props} position={[0, -0.9, 0]} />
+        <primitive object={scene} {...props} />
       </Suspense>
     </group>
   );
@@ -41,7 +46,8 @@ export default function NFT3D({ url, ...props }) {
   return (
     // <div style={{ display: "flex", justifyContent: "center", height: "100%" }}>
     <Canvas
-      camera={{ position: [4, 0, 6.45], fov: 15 }}
+      // camera={{ position: [4, 0, 6.45], fov: 15 }}
+      camera={{ fov: 45, zoom: 0.9, near: 1, far: 1000 }}
       style={{
         backgroundColor: "blue",
         width: "100%",
@@ -53,7 +59,9 @@ export default function NFT3D({ url, ...props }) {
       <ambientLight intensity={0.1} />
       <directionalLight intensity={0.4} />
       <Suspense fallback={null}>
-        <Model url={url} {...props} />
+        <Stage preset="rembrandt" intensity={1} environment="city">
+          <Model url={url} {...props} />
+        </Stage>
       </Suspense>
       {/* <OrbitControls /> */}
     </Canvas>
