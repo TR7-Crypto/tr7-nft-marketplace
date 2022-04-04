@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { Row, Col, Card, Button } from "react-bootstrap";
 import NFTCard from "./GUI/Component/Common/NFTCard";
+import ListNFTCard from "./GUI/Component/Section/ListNFTCard";
 export const HomePageSlag = "/tr7-nft-marketplace";
 
 const Home = ({ marketplace, nft }) => {
@@ -69,13 +70,7 @@ const Home = ({ marketplace, nft }) => {
     <div className="flex justify-content">
       {items.length > 0 ? (
         <div className="px-5 container">
-          <Row xs={1} sm={2} xl={4} className="g-4 py-5">
-            {items.map((item, idx) => (
-              <Col key={idx} className="overflow-hidden">
-                <NFTCard item={item} buyMarketItem={buyMarketItem} />
-              </Col>
-            ))}
-          </Row>
+          <ListNFTCard listItem={items} buyMarketItem="" type="sale" />
         </div>
       ) : (
         <main

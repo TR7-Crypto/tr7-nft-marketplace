@@ -1,24 +1,15 @@
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
+import NFTCard from "./GUI/Component/Common/NFTCard";
+
+import ListNFTCard from "./GUI/Component/Section/ListNFTCard";
 
 function renderSoldItems(items) {
   return (
     <>
       <h2 className="text-primary">Sold NFTs</h2>
-      <Row>
-        {items.map((item, idx) => (
-          <Col key={idx} className="overflow-hidden">
-            <Card>
-              <Card.Img variant="top" src={item.image} />
-              <Card.Footer>
-                For {ethers.utils.formatEther(item.totalPrice)} ETH - Received{" "}
-                {ethers.utils.formatEther(item.price)} ETH
-              </Card.Footer>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+      <ListNFTCard listItem={items} buyMarketItem="" type="sold" />
     </>
   );
 }
@@ -51,6 +42,7 @@ const MyListedItems = ({ marketplace, nft, account }) => {
           name: metadata.name,
           description: metadata.description,
           image: metadata.image,
+          type: metadata.type,
         };
         listedItems.push(item);
         // Add listed item to sold items list if sold
@@ -77,18 +69,7 @@ const MyListedItems = ({ marketplace, nft, account }) => {
       {listedItems.length > 0 ? (
         <div className="px-5 py-3 container">
           <h2 className="text-primary">Listed NFTs</h2>
-          <Row>
-            {listedItems.map((item, idx) => (
-              <Col key={idx} className="overflow-hidden">
-                <Card>
-                  <Card.Img variant="top" src={item.image} />
-                  <Card.Footer>
-                    {ethers.utils.formatEther(item.totalPrice)} ETH
-                  </Card.Footer>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+          <ListNFTCard listItem={listedItems} buyMarketItem="" type="listed" />
           {soldItems.length > 0 && renderSoldItems(soldItems)}
         </div>
       ) : (

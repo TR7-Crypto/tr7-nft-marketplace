@@ -58,7 +58,7 @@ export default function NFT3D({ url, ...props }) {
       <ambientLight intensity={1.25} />
       <ambientLight intensity={0.1} />
       <directionalLight intensity={0.4} />
-      <Suspense fallback={null}>
+      <Suspense fallback={<Loader />}>
         <Stage preset="rembrandt" intensity={1} environment="city">
           <Model url={url} {...props} />
         </Stage>

@@ -7,14 +7,23 @@ import ReactPlayer from "react-player/lazy";
 
 import Frame3D from "./Frame3D";
 import TR7Logo from "../../../tr7-logo-001.png";
-const NFTCard = ({ item, buyMarketItem }) => {
+const NFTCard = ({ item, buyMarketItem, type }) => {
+  console.log("item.type", item.type);
   function IsItemImage(itemType) {
-    if (itemType === "jpeg" || itemType === "svg" || itemType === "gif") {
+    if (
+      itemType === "jpeg" ||
+      itemType === "svg" ||
+      itemType === "gif" ||
+      itemType === "webp"
+    ) {
       return true;
     }
     return false;
   }
   function IsAudioItem(itemType) {
+    // if (itemType.match(/audio\/*/g) != null) {
+    //   return true;
+    // }
     if (itemType === "mp3" || itemType === "wav") {
       return true;
     }
@@ -70,6 +79,7 @@ const NFTCard = ({ item, buyMarketItem }) => {
             width="100%"
             height="100%"
             volume={0.5}
+            // light="/music.webp"
           />
         )}
         {IsVideoItem(item.type) && (
@@ -79,6 +89,7 @@ const NFTCard = ({ item, buyMarketItem }) => {
             width="100%"
             height="100%"
             volume={0.5}
+            // light={true}
           />
         )}
         {Is3DItem(item.type) && <Frame3D url={item.image} type={item.type} />}
@@ -93,11 +104,22 @@ const NFTCard = ({ item, buyMarketItem }) => {
         </Card.Text>
       </Card.Body>
       <Card.Footer>
-        {/* <div className="d-grid"> */}
-        <Button onClick={() => buyMarketItem(item)} variant="primary" size="lg">
-          Buy for {ethers.utils.formatEther(item.totalPrice)} ETH
-        </Button>
-        {/* </div> */}
+        {type === "sale" ? (
+          <Button
+            onClick={() => buyMarketItem(item)}
+            variant="primary"
+            size="lg"
+          >
+            Buy for {ethers.utils.formatEther(item.totalPrice)} ETH
+          </Button>
+        ) : type === "sold" ? (
+          <>
+            For {ethers.utils.formatEther(item.totalPrice)} ETH - Received{" "}
+            {ethers.utils.formatEther(item.price)} ETH
+          </>
+        ) : (
+          <>{ethers.utils.formatEther(item.totalPrice)} ETH</>
+        )}
       </Card.Footer>
     </Card>
   );

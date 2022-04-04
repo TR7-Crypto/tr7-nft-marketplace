@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import { ethers } from "ethers";
+import NFTCard from "./GUI/Component/Common/NFTCard";
+import ListNFTCard from "./GUI/Component/Section/ListNFTCard";
 const MyPurchases = ({ marketplace, nft, account }) => {
   const [loading, $loading] = useState(true);
   const [purchasedItems, $purchasedItems] = useState([]);
@@ -38,6 +40,7 @@ const MyPurchases = ({ marketplace, nft, account }) => {
           name: metadata.name,
           description: metadata.description,
           image: metadata.image,
+          type: metadata.type,
         };
         return purchasedItem;
       })
@@ -60,18 +63,11 @@ const MyPurchases = ({ marketplace, nft, account }) => {
     <div className="flex justify-center">
       {purchasedItems.length > 0 ? (
         <div className="px-5 container">
-          <Row xs={1} md={2} lg={4} className="g-4 py-5">
-            {purchasedItems.map((item, idx) => (
-              <Col key={idx} className="overflow-hidden">
-                <Card>
-                  <Card.Img variant="top" src={item.image} />
-                  <Card.Footer>
-                    {ethers.utils.formatEther(item.totalPrice)} ETH
-                  </Card.Footer>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+          <ListNFTCard
+            listItem={purchasedItems}
+            buyMarketItem=""
+            type="purchased"
+          />
         </div>
       ) : (
         <main style={{ padding: "1rem 0" }}>
