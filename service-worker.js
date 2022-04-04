@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/tr7-nft-marketplace/precache-manifest.8e924588a5af72b5fab227313260bd92.js"
+  "/tr7-nft-marketplace/precache-manifest.6b548a0dcc6584b3f1c0d290a57fecab.js"
 );
 
 workbox.clientsClaim();

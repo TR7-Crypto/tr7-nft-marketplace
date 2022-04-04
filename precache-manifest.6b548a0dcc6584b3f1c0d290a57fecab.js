@@ -76,7 +76,7 @@ self.__precacheManifest = [
     "url": "/tr7-nft-marketplace/static/media/logo.06825633.png"
   },
   {
-    "revision": "1fb407179bde4de6a2fe9555e392af9c",
+    "revision": "f7b1822cfbf126701d1e07396731bde1",
     "url": "/tr7-nft-marketplace/index.html"
   }
 ];
