@@ -6,14 +6,6 @@ import InputText from "./GUI/Component/Common/InputText";
 
 const client = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
 console.log("client", client);
-// let ipfs = undefined;
-// try {
-//   ipfs = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
-//   console.log("ipfs", ipfs);
-// } catch (error) {
-//   console.error("IPFS error ", error);
-//   ipfs = undefined;
-// }
 
 const MintingModal = ({ mintState }) => {
   return (
@@ -43,7 +35,8 @@ const MintingModal = ({ mintState }) => {
   );
 };
 
-const Create = ({ marketplace, nft }) => {
+const LazyCreate = ({ marketplace, nft, account, signer }) => {
+  console.log("account", account);
   const [image, $image] = useState("");
   const [type, $type] = useState("");
   const [price, $price] = useState(null);
@@ -62,7 +55,7 @@ const Create = ({ marketplace, nft }) => {
   useEffect(async () => {
     if (minting) {
       $mintState("creating NFT...");
-      if (!image || !price || !name || !description) return;
+      if (!image || !name || !description) return;
       try {
         const metadataJson = JSON.stringify({
           image,
@@ -74,7 +67,7 @@ const Create = ({ marketplace, nft }) => {
         });
         console.log("nft-metadata", metadataJson);
         const result = await client.add(metadataJson);
-        mintThenList(result);
+        lazyMinting(result);
       } catch (error) {
         console.log("ipfs uri upload error:", error);
       }
@@ -100,6 +93,7 @@ const Create = ({ marketplace, nft }) => {
       }
     }
   };
+
   const createNFT = async () => {
     console.log("create nft click");
     $mintState("uploading to IPFS...");
@@ -107,33 +101,85 @@ const Create = ({ marketplace, nft }) => {
     $minting(true);
   };
 
-  const mintThenList = async (result) => {
-    console.log("mint then list", result);
+  const SIGNING_DOMAIN_NAME = "LazyNFT-Voucher";
+  const SIGNING_DOMAIN_VERSION = "1";
+  const voucher = { tokenId: 1, uri: "https://tr7-marketplace", minPrice: 0 };
+  let payload = ethers.utils.defaultAbiCoder.encode(
+    ["tuple(uint256,uint256,string)"],
+    [[voucher.tokenId, voucher.minPrice, voucher.uri]]
+  );
+  console.log("payload", payload);
+  async function createVoucher(tokenId, uri, minPrice = 0) {
+    const voucher = { tokenId, minPrice, uri };
+    const chainId = await window.ethereum.request({
+      method: "eth_chainId",
+    });
+    console.log("chainId", chainId);
+    const domain = {
+      name: SIGNING_DOMAIN_NAME,
+      version: SIGNING_DOMAIN_VERSION,
+      verifyingContract: nft.address,
+      chainId,
+    };
+    const types = {
+      NFTVoucher: [
+        { name: "tokenId", type: "uint256" },
+        { name: "minPrice", type: "uint256" },
+        { name: "uri", type: "string" },
+      ],
+    };
+    const signature = await signer._signTypedData(domain, types, voucher);
+    console.log("signature", signature);
+    const signedVoucher = {
+      ...voucher,
+      signature,
+    };
+    console.log("signedVoucher", signedVoucher);
+
+    // verify redeem
+    try {
+      let redeemTokenId = await (
+        await nft.redeem(account, signedVoucher)
+      ).wait();
+      console.log("redeemTokenId", redeemTokenId);
+    } catch (error) {
+      console.log(error);
+    }
+
+    return signedVoucher;
+  }
+
+  const lazyMinting = async (result) => {
+    console.log("lazy minting", result);
     const uri = `https://ipfs.infura.io/ipfs/${result.path}`;
-    // mint nft
-    const mintingNFT = `minting NFT
-    waiting for metamask confirm...`;
+    // create NFT voucher and request for signing from wallet provider
+    const mintingNFT = `creating NFT voucher...
+    please sign message on metamask wallet`;
     console.log("mintingNFT", mintingNFT);
     $mintState(mintingNFT);
-    await (await nft.mint(uri)).wait();
-    console.log("already minted");
-    // get tokenId of new nft
-    const id = await nft.tokenCount();
-    // approve marketplace to spend nft
-    $mintState(
-      "approving all for marketplace as operator\nplease confirm transaction on metamask"
-    );
-    await (await nft.setApprovalForAll(marketplace.address, true)).wait();
-    console.log("already approved for all");
-    // add nft to marketplace
-    const listingPrice = ethers.utils.parseEther(price.toString());
-    $mintState(
-      "listing NFT with price to marketplace for sale\nwaiting for metamask confirm"
-    );
-    await (await marketplace.makeItem(nft.address, id, listingPrice)).wait();
-    console.log("already list item to market");
+    const tokenId = 1; // should be random hash
+    const voucher = await createVoucher(tokenId, uri);
+    console.log("already created NFT voucher");
+    // then upload this NFT voucher to central server (off-chain)
+
+    // // get tokenId of new nft
+    // const id = await nft.tokenCount();
+    // // approve marketplace to spend nft
+    // $mintState(
+    //   "approving all for marketplace as operator\nplease confirm transaction on metamask"
+    // );
+    // await (await nft.setApprovalForAll(marketplace.address, true)).wait();
+    // console.log("already approved for all");
+    // // add nft to marketplace
+    // const listingPrice = ethers.utils.parseEther(price.toString());
+    // $mintState(
+    //   "listing NFT with price to marketplace for sale\nwaiting for metamask confirm"
+    // );
+    // await (await marketplace.makeItem(nft.address, id, listingPrice)).wait();
+    // console.log("already list item to market");
     $mintState("");
   };
+
   return (
     <div className="container-fluid-md mt-5">
       <div className="row">
@@ -183,22 +229,22 @@ const Create = ({ marketplace, nft }) => {
                     $description(e.target.value);
                   }}
                 />
-
                 <Form.Group className="mb-3">
+                  <Form.Label>Minting Price</Form.Label>
                   <Form.Control
                     onChange={(e) => {
                       $price(e.target.value);
                     }}
                     size="lg"
                     type="number"
-                    placeholder="Price in $ETH"
+                    placeholder="Price to mint the NFT in $ETH"
                   />
                 </Form.Group>
               </Form>
 
               <div className="d-grid px-0">
                 <Button onClick={createNFT} variant="primary" size="lg">
-                  Create & List NFT!
+                  Create
                 </Button>
               </div>
             </Row>
@@ -211,4 +257,4 @@ const Create = ({ marketplace, nft }) => {
   );
 };
 
-export default Create;
+export default LazyCreate;

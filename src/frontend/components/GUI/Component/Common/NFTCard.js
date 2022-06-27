@@ -14,6 +14,7 @@ const NFTCard = ({ item, buyMarketItem, type }) => {
       itemType === "jpeg" ||
       itemType === "svg" ||
       itemType === "gif" ||
+      itemType === "png" ||
       itemType === "webp"
     ) {
       return true;
@@ -101,6 +102,9 @@ const NFTCard = ({ item, buyMarketItem, type }) => {
         </Card.Title>
         <Card.Text style={{ height: "1.5rem" }} className="text-truncate">
           {item.description}
+        </Card.Text>
+        <Card.Text style={{ height: "1.5rem" }} className="text-truncate">
+          {item.externalLink}
         </Card.Text>
       </Card.Body>
       <Card.Footer>

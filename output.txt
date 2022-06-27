@@ -1,0 +1,26 @@
+/Users/sitruong_tr7/Work/TR7-Crypto/tr7-nft-marketplace
+├── hardhat.config.js
+├── helper.js
+├── output.txt
+├── package-lock.json
+├── package.json
+├── public
+|  ├── favicon.ico
+|  ├── index.html
+|  └── manifest.json
+├── src
+|  ├── backend
+|  |  ├── contracts
+|  |  ├── scripts
+|  |  └── test
+|  ├── frontend
+|  |  ├── components
+|  |  └── contractsData
+|  ├── index.js
+|  └── serviceWorker.js
+├── yarn-error.log
+└── yarn.lock
+
+directory: 2994 file: 7503
+
+ignored: directory (412)
