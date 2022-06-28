@@ -3,7 +3,14 @@ import { ethers } from "ethers";
 import { Row, Form, Button, Spinner, Modal } from "react-bootstrap";
 import { create as ipfsHttpClient } from "ipfs-http-client";
 import InputText from "./GUI/Component/Common/InputText";
-
+import InputNumber from "./GUI/Component/Common/InputNumber";
+import CryptoJS from "crypto-js";
+function createTokenId(string) {
+  const input = Math.random().toString();
+  const decimals = 18;
+  // const input = CryptoJS.SHA3(string, { outputLength: 256 }).toString(); // Note: this is a string, e.g. user input
+  return ethers.utils.parseUnits(input, decimals);
+}
 const client = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
 console.log("client", client);
 
@@ -157,7 +164,8 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     please sign message on metamask wallet`;
     console.log("mintingNFT", mintingNFT);
     $mintState(mintingNFT);
-    const tokenId = 1; // should be random hash
+    const tokenId = createTokenId(uri); // should be random token id from uri
+    console.log("tokenId", tokenId);
     const voucher = await createVoucher(tokenId, uri);
     console.log("already created NFT voucher");
     // then upload this NFT voucher to central server (off-chain)
@@ -181,7 +189,7 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
   };
 
   return (
-    <div className="container-fluid-md mt-5">
+    <div className="container-fluid-md mt-5 mx-2">
       <div className="row">
         <main
           role="main"
@@ -229,22 +237,20 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
                     $description(e.target.value);
                   }}
                 />
-                <Form.Group className="mb-3">
-                  <Form.Label>Minting Price</Form.Label>
-                  <Form.Control
-                    onChange={(e) => {
-                      $price(e.target.value);
-                    }}
-                    size="lg"
-                    type="number"
-                    placeholder="Price to mint the NFT in $ETH"
-                  />
-                </Form.Group>
+                <InputNumber
+                  size="lg"
+                  label="Minting Price"
+                  labelDes="Price to mint this NFT, will be redeemed on first sale to the buyer"
+                  description="Price to mint the NFT in $ETH"
+                  onChangeHandler={(e) => {
+                    $price(e.target.value);
+                  }}
+                />
               </Form>
 
               <div className="d-grid px-0">
                 <Button onClick={createNFT} variant="primary" size="lg">
-                  Create
+                  Lazy Create
                 </Button>
               </div>
             </Row>
