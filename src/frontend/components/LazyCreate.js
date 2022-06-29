@@ -140,6 +140,7 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     const signedVoucher = {
       ...voucher,
       signature,
+      account,
     };
     console.log("signedVoucher", signedVoucher);
 

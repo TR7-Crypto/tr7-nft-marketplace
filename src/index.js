@@ -4,9 +4,16 @@ import "bootstrap/dist/css/bootstrap.css";
 import App from "./frontend/components/App";
 import LazyApp from "./frontend/components/LazyApp";
 import * as serviceWorker from "./serviceWorker";
+import { ApolloProvider } from "@apollo/client";
+import apolloClient from "./config/createApolloClient";
 
 const rootElement = document.getElementById("root");
-render(<LazyApp />, rootElement);
+render(
+  <ApolloProvider client={apolloClient}>
+    <LazyApp />
+  </ApolloProvider>,
+  rootElement
+);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
