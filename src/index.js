@@ -18,21 +18,21 @@ const apolloClient = new ApolloClient({
   uri: "http://localhost:4000/graphql",
 });
 
-apolloClient
-  .query({
-    query: gql`
-      query TestQuery {
-        getVouchers {
-          tokenId
-          minPrice
-          uri
-          signature
-          account
-        }
-      }
-    `,
-  })
-  .then((result) => console.log(result));
+// apolloClient
+//   .query({
+//     query: gql`
+//       query TestQuery {
+//         getVouchers {
+//           tokenId
+//           minPrice
+//           uri
+//           signature
+//           account
+//         }
+//       }
+//     `,
+//   })
+//   .then((result) => console.log(result));
 
 const rootElement = document.getElementById("root");
 render(

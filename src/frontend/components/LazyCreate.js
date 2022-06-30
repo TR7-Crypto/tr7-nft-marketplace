@@ -5,6 +5,7 @@ import { create as ipfsHttpClient } from "ipfs-http-client";
 import InputText from "./GUI/Component/Common/InputText";
 import InputNumber from "./GUI/Component/Common/InputNumber";
 import CryptoJS from "crypto-js";
+import { useMutation, gql } from "@apollo/client";
 function createTokenId(string) {
   const input = Math.random().toString();
   const decimals = 18;
@@ -42,6 +43,52 @@ const MintingModal = ({ mintState }) => {
   );
 };
 
+const ADD_VOUCHER = gql`
+  mutation AddVoucher(
+    $tokenId: String
+    $minPrice: String
+    $uri: String
+    $signature: String
+    $account: String
+  ) {
+    addVoucher(
+      tokenId: $tokenId
+      minPrice: $minPrice
+      uri: $uri
+      signature: $signature
+      account: $account
+    ) {
+      tokenId
+      minPrice
+      uri
+      signature
+      account
+    }
+  }
+`;
+const SubmitVoucher = ({ signedVoucher, onSubmitComplete }) => {
+  console.log("submit voucher", signedVoucher);
+  const [addVoucher, { loading, error, data }] = useMutation(ADD_VOUCHER, {
+    variables: {
+      tokenId: signedVoucher.tokenId.toString(),
+      minPrice: signedVoucher.minPrice.toString(),
+      uri: signedVoucher.uri.toString(),
+      signature: signedVoucher.signature.toString(),
+      account: signedVoucher.account.toString(),
+    },
+  });
+  useEffect(async () => {
+    await addVoucher();
+  }, []);
+
+  if (loading)
+    return <MintingModal mintState={"submitting NFT to server..."} />;
+  if (error) return <MintingModal mintState={"submit to server failed"} />;
+
+  onSubmitComplete();
+  return <></>;
+};
+
 const LazyCreate = ({ marketplace, nft, account, signer }) => {
   console.log("account", account);
   const [image, $image] = useState("");
@@ -55,10 +102,18 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
   const [mintState, $mintState] = useState("");
   const [file, $file] = useState("");
   const [minting, $minting] = useState(false);
+  const [submitVoucher, $submitVoucher] = useState(false);
+  const [signedVoucher, $signedVoucher] = useState(false);
+
+  function onSubmitComplete() {
+    $submitVoucher(false);
+  }
+
   function setFile(event) {
     event.preventDefault();
     $file(event.target.files[0]);
   }
+
   useEffect(async () => {
     if (minting) {
       $mintState("creating NFT...");
@@ -74,7 +129,7 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
         });
         console.log("nft-metadata", metadataJson);
         const result = await client.add(metadataJson);
-        lazyMinting(result);
+        await lazyMinting(result);
       } catch (error) {
         console.log("ipfs uri upload error:", error);
       }
@@ -167,25 +222,10 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     $mintState(mintingNFT);
     const tokenId = createTokenId(uri); // should be random token id from uri
     console.log("tokenId", tokenId);
-    const voucher = await createVoucher(tokenId, uri);
-    console.log("already created NFT voucher");
-    // then upload this NFT voucher to central server (off-chain)
-
-    // // get tokenId of new nft
-    // const id = await nft.tokenCount();
-    // // approve marketplace to spend nft
-    // $mintState(
-    //   "approving all for marketplace as operator\nplease confirm transaction on metamask"
-    // );
-    // await (await nft.setApprovalForAll(marketplace.address, true)).wait();
-    // console.log("already approved for all");
-    // // add nft to marketplace
-    // const listingPrice = ethers.utils.parseEther(price.toString());
-    // $mintState(
-    //   "listing NFT with price to marketplace for sale\nwaiting for metamask confirm"
-    // );
-    // await (await marketplace.makeItem(nft.address, id, listingPrice)).wait();
-    // console.log("already list item to market");
+    const signedVoucher = await createVoucher(tokenId, uri, price);
+    console.log("signedVoucher", signedVoucher);
+    $signedVoucher(signedVoucher);
+    $submitVoucher(true);
     $mintState("");
   };
 
@@ -260,6 +300,12 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
       </div>
       {/* modal showing status of minting and listing */}
       {mintState !== "" && <MintingModal mintState={mintState} />}
+      {submitVoucher && (
+        <SubmitVoucher
+          signedVoucher={signedVoucher}
+          onSubmitComplete={onSubmitComplete}
+        />
+      )}
     </div>
   );
 };
