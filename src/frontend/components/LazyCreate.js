@@ -144,15 +144,15 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     };
     console.log("signedVoucher", signedVoucher);
 
-    // verify redeem
-    try {
-      let redeemTokenId = await (
-        await nft.redeem(account, signedVoucher)
-      ).wait();
-      console.log("redeemTokenId", redeemTokenId);
-    } catch (error) {
-      console.log(error);
-    }
+    // // verify redeem
+    // try {
+    //   let redeemTokenId = await (
+    //     await nft.redeem(account, signedVoucher)
+    //   ).wait();
+    //   console.log("redeemTokenId", redeemTokenId);
+    // } catch (error) {
+    //   console.log(error);
+    // }
 
     return signedVoucher;
   }

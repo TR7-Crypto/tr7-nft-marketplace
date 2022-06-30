@@ -4,8 +4,35 @@ import "bootstrap/dist/css/bootstrap.css";
 import App from "./frontend/components/App";
 import LazyApp from "./frontend/components/LazyApp";
 import * as serviceWorker from "./serviceWorker";
-import { ApolloProvider } from "@apollo/client";
-import apolloClient from "./config/createApolloClient";
+import {
+  ApolloProvider,
+  ApolloClient,
+  NormalizedCacheObject,
+  gql,
+} from "@apollo/client";
+import { cache } from "./cache";
+// import apolloClient from "./config/createApolloClient";
+
+const apolloClient = new ApolloClient({
+  cache,
+  uri: "http://localhost:4000/graphql",
+});
+
+apolloClient
+  .query({
+    query: gql`
+      query TestQuery {
+        getVouchers {
+          tokenId
+          minPrice
+          uri
+          signature
+          account
+        }
+      }
+    `,
+  })
+  .then((result) => console.log(result));
 
 const rootElement = document.getElementById("root");
 render(
