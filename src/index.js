@@ -13,7 +13,7 @@ import {
 import { cache } from "./cache";
 // import apolloClient from "./config/createApolloClient";
 
-const apolloClient = new ApolloClient({
+export const apolloClient = new ApolloClient({
   cache,
   uri: "http://localhost:4000/graphql",
 });

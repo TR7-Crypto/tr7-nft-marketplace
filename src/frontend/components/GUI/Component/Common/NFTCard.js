@@ -121,6 +121,8 @@ const NFTCard = ({ item, buyMarketItem, type }) => {
             For {ethers.utils.formatEther(item.totalPrice)} ETH - Received{" "}
             {ethers.utils.formatEther(item.price)} ETH
           </>
+        ) : type === "mint" ? (
+          <>Mint for {ethers.utils.formatEther(item.totalPrice)} ETH</>
         ) : (
           <>{ethers.utils.formatEther(item.totalPrice)} ETH</>
         )}

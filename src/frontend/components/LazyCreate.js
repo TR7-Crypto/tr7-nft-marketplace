@@ -71,7 +71,7 @@ const SubmitVoucher = ({ signedVoucher, onSubmitComplete }) => {
   const [addVoucher, { loading, error, data }] = useMutation(ADD_VOUCHER, {
     variables: {
       tokenId: signedVoucher.tokenId.toString(),
-      minPrice: signedVoucher.minPrice.toString(),
+      minPrice: signedVoucher.mintPrice.toString(),
       uri: signedVoucher.uri.toString(),
       signature: signedVoucher.signature.toString(),
       account: signedVoucher.account.toString(),
@@ -171,8 +171,9 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     [[voucher.tokenId, voucher.minPrice, voucher.uri]]
   );
   console.log("payload", payload);
-  async function createVoucher(tokenId, uri, minPrice = 0) {
-    const voucher = { tokenId, minPrice, uri };
+
+  async function createVoucher(tokenId, uri, mintPrice = 0) {
+    const voucher = { tokenId, mintPrice, uri };
     const chainId = await window.ethereum.request({
       method: "eth_chainId",
     });
@@ -186,7 +187,7 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     const types = {
       NFTVoucher: [
         { name: "tokenId", type: "uint256" },
-        { name: "minPrice", type: "uint256" },
+        { name: "mintPrice", type: "uint256" },
         { name: "uri", type: "string" },
       ],
     };
@@ -222,7 +223,8 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     $mintState(mintingNFT);
     const tokenId = createTokenId(uri); // should be random token id from uri
     console.log("tokenId", tokenId);
-    const signedVoucher = await createVoucher(tokenId, uri, price);
+    const mintPrice = ethers.utils.parseEther(price.toString());
+    const signedVoucher = await createVoucher(tokenId, uri, mintPrice);
     console.log("signedVoucher", signedVoucher);
     $signedVoucher(signedVoucher);
     $submitVoucher(true);
