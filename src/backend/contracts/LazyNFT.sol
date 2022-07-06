@@ -46,11 +46,11 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
         // make sure signature is valid and get the address of the signer
         address signer = _verify(voucher);
 
-        // make sure that the signer is authorized to mint NFTs
-        require(
-            hasRole(MINTER_ROLE, signer),
-            "Signature invalid or unauthorized"
-        );
+        // // make sure that the signer is authorized to mint NFTs
+        // require(
+        //     hasRole(MINTER_ROLE, signer),
+        //     "Signature invalid or unauthorized"
+        // );
 
         // make sure that the redeemer is paying enough to cover the buyer's cost
         require(msg.value >= voucher.minPrice, "Insufficient funds to redeem");
