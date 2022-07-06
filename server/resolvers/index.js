@@ -39,6 +39,10 @@ const resolvers = {
       const savedVoucher = await newVoucher.save();
       return savedVoucher;
     },
+    deleteVoucher: async (_, { tokenId }) => {
+      await Voucher.deleteOne({ tokenId: tokenId });
+      return await Voucher.find({});
+    },
   },
 };
 

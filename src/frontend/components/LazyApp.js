@@ -29,7 +29,7 @@ function LazyApp() {
       method: "eth_requestAccounts",
     });
     $account(accounts[0]);
-    console.log("account0", accounts[0]);
+    console.log("account[0]", accounts[0]);
     // Get provider from MetaMask
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     // Set signer
@@ -39,6 +39,7 @@ function LazyApp() {
     $loading(false);
   };
   const loadContracts = async (signer) => {
+    console.log("signer", signer);
     // Get deployed copies of contracts
     const marketplace = new ethers.Contract(
       MarketplaceAddress.address,
@@ -47,6 +48,7 @@ function LazyApp() {
     );
     $marketplace(marketplace);
     const nft = new ethers.Contract(NFTAddress.address, NFTAbi.abi, signer);
+    console.log("nft contract", nft);
     $nft(nft);
   };
   return (
@@ -69,7 +71,14 @@ function LazyApp() {
           <Routes>
             <Route
               path={`${HomePageSlag}/`}
-              element={<LazyHome marketplace={marketplace} nft={nft} />}
+              element={
+                <LazyHome
+                  marketplace={marketplace}
+                  nft={nft}
+                  account={account}
+                  signer={signer}
+                />
+              }
             />
             <Route
               path={`${HomePageSlag}/create`}

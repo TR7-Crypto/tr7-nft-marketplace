@@ -21,6 +21,7 @@ const typeDefs = gql`
       signature: String
       account: String
     ): Voucher!
+    deleteVoucher(tokenId: String): [Voucher]!
   }
 `;
 

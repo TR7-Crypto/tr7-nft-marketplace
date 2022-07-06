@@ -106,6 +106,11 @@ const NFTCard = ({ item, buyMarketItem, type }) => {
         <Card.Text style={{ height: "1.5rem" }} className="text-truncate">
           {item.externalLink}
         </Card.Text>
+        {item.voucher && (
+          <Card.Text style={{ height: "1.5rem" }} className="text-truncate">
+            Owner: {item.voucher.account}
+          </Card.Text>
+        )}
       </Card.Body>
       <Card.Footer>
         {type === "sale" ? (
@@ -122,7 +127,13 @@ const NFTCard = ({ item, buyMarketItem, type }) => {
             {ethers.utils.formatEther(item.price)} ETH
           </>
         ) : type === "mint" ? (
-          <>Mint for {ethers.utils.formatEther(item.totalPrice)} ETH</>
+          <Button
+            onClick={() => buyMarketItem(item)}
+            variant="primary"
+            size="lg"
+          >
+            Mint for {ethers.utils.formatEther(item.totalPrice)} ETH
+          </Button>
         ) : (
           <>{ethers.utils.formatEther(item.totalPrice)} ETH</>
         )}

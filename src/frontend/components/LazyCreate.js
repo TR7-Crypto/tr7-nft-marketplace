@@ -66,28 +66,6 @@ const ADD_VOUCHER = gql`
     }
   }
 `;
-const SubmitVoucher = ({ signedVoucher, onSubmitComplete }) => {
-  console.log("submit voucher", signedVoucher);
-  const [addVoucher, { loading, error, data }] = useMutation(ADD_VOUCHER, {
-    variables: {
-      tokenId: signedVoucher.tokenId.toString(),
-      minPrice: signedVoucher.mintPrice.toString(),
-      uri: signedVoucher.uri.toString(),
-      signature: signedVoucher.signature.toString(),
-      account: signedVoucher.account.toString(),
-    },
-  });
-  useEffect(async () => {
-    await addVoucher();
-  }, []);
-
-  if (loading)
-    return <MintingModal mintState={"submitting NFT to server..."} />;
-  if (error) return <MintingModal mintState={"submit to server failed"} />;
-
-  onSubmitComplete();
-  return <></>;
-};
 
 const LazyCreate = ({ marketplace, nft, account, signer }) => {
   console.log("account", account);
@@ -108,6 +86,28 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
   function onSubmitComplete() {
     $submitVoucher(false);
   }
+  const SubmitVoucher = ({ signedVoucher, onSubmitComplete }) => {
+    console.log("submit voucher", signedVoucher);
+    const [addVoucher, { loading, error, data }] = useMutation(ADD_VOUCHER, {
+      variables: {
+        tokenId: signedVoucher.tokenId.toString(),
+        minPrice: signedVoucher.minPrice.toString(),
+        uri: signedVoucher.uri.toString(),
+        signature: signedVoucher.signature.toString(),
+        account: account.toString(),
+      },
+    });
+    useEffect(async () => {
+      await addVoucher();
+    }, []);
+
+    if (loading)
+      return <MintingModal mintState={"submitting NFT to server..."} />;
+    if (error) return <MintingModal mintState={"submit to server failed"} />;
+
+    onSubmitComplete();
+    return <></>;
+  };
 
   function setFile(event) {
     event.preventDefault();
@@ -138,9 +138,6 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
   }, [minting]);
 
   const uploadToIPFS = async (file) => {
-    // event.preventDefault();
-    // console.log("upload image to ipfs");
-    // const file = event.target.files[0];
     console.log("file", file);
     if (typeof file !== "undefined") {
       try {
@@ -172,8 +169,8 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
   );
   console.log("payload", payload);
 
-  async function createVoucher(tokenId, uri, mintPrice = 0) {
-    const voucher = { tokenId, mintPrice, uri };
+  async function createVoucher(tokenId, uri, minPrice = 0) {
+    const voucher = { tokenId, minPrice, uri };
     const chainId = await window.ethereum.request({
       method: "eth_chainId",
     });
@@ -187,7 +184,7 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     const types = {
       NFTVoucher: [
         { name: "tokenId", type: "uint256" },
-        { name: "mintPrice", type: "uint256" },
+        { name: "minPrice", type: "uint256" },
         { name: "uri", type: "string" },
       ],
     };
@@ -196,7 +193,6 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     const signedVoucher = {
       ...voucher,
       signature,
-      account,
     };
     console.log("signedVoucher", signedVoucher);
 
@@ -223,8 +219,9 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     $mintState(mintingNFT);
     const tokenId = createTokenId(uri); // should be random token id from uri
     console.log("tokenId", tokenId);
-    const mintPrice = ethers.utils.parseEther(price.toString());
-    const signedVoucher = await createVoucher(tokenId, uri, mintPrice);
+    const minPrice = ethers.utils.parseEther(price);
+    console.log("create minPrice", minPrice);
+    const signedVoucher = await createVoucher(tokenId, uri, minPrice);
     console.log("signedVoucher", signedVoucher);
     $signedVoucher(signedVoucher);
     $submitVoucher(true);

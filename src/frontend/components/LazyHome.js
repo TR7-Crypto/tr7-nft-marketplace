@@ -1,8 +1,6 @@
 // Show all NFTs (including vouchers) have listed status
 import React, { useState, useEffect, lazy } from "react";
-import { ethers } from "ethers";
-import { Row, Col, Card, Button } from "react-bootstrap";
-import NFTCard from "./GUI/Component/Common/NFTCard";
+import { ethers, providers } from "ethers";
 import ListNFTCard from "./GUI/Component/Section/ListNFTCard";
 import { gql, useQuery } from "@apollo/client";
 import { apolloClient } from "../../index";
@@ -20,22 +18,67 @@ const GET_VOUCHER = gql`
   }
 `;
 
-const NFTVoucher = () => {
+const DELETE_VOUCHER = gql`
+  mutation DeleteVoucher($tokenId: String) {
+    deleteVoucher(tokenId: $tokenId) {
+      tokenId
+      minPrice
+      uri
+      signature
+      account
+    }
+  }
+`;
+
+const NFTVoucher = ({ nft, signer }) => {
   const [loading, $loading] = useState(true);
-  const [items, $items] = useState([]);
+  const [voucherItems, $voucherItems] = useState([]);
+
+  const mintingVoucher = async (itemData) => {
+    const item = itemData.voucher;
+    const tokenId = ethers.BigNumber.from(item.tokenId);
+    const minPrice = ethers.BigNumber.from(item.minPrice);
+    // verify redeem
+    const signedVoucher = {
+      tokenId,
+      minPrice,
+      uri: item.uri,
+      signature: item.signature,
+    };
+    try {
+      const signerAddress = await signer.getAddress();
+      const signerBalance = await signer.getBalance();
+      console.log(
+        "signer addr",
+        signerAddress,
+        "balance",
+        signerBalance.toString()
+      );
+      let redeemTokenId = await (
+        await nft.redeem(signerAddress, signedVoucher, {
+          value: minPrice,
+        })
+      ).wait();
+      console.log("redeemTokenId", redeemTokenId);
+      if (redeemTokenId) {
+        deleteVoucher(item.tokenId);
+        // reloadVoucher();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const loadVoucherInformation = async (result) => {
-    console.log("result", result);
-    const vouchers = result.data.getVouchers;
+    // console.log("result", result);
+    const vouchers = result;
+    console.log("vouchers", vouchers);
     const itemCount = vouchers.length;
+    console.log("voucher count", vouchers.length);
     let items = [];
-    console.log("nft voucher count ", itemCount);
     for (let i = 0; i < itemCount; i++) {
       const item = vouchers[i];
-      console.log("item i", item);
-      // uri
       const uri = item.uri;
-      // use uri to fetch the nft metadata stored on ipfs
       const response = await fetch(uri);
       const metadata = await response.json();
       // get total price of item (item price + fee)
@@ -50,36 +93,56 @@ const NFTVoucher = () => {
         image: metadata.image,
         type: metadata.type,
         externalLink: metadata.externalLink,
+        voucher: item,
       });
-      $items(items);
     }
+    $voucherItems(items);
   };
-  const LoadNFTVouchers = async (data) => {
+  const LoadNFTVouchers = async () => {
     await apolloClient
-      .query({ query: GET_VOUCHER })
-      .then((result) => loadVoucherInformation(result));
+      .query({ query: GET_VOUCHER, fetchPolicy: "no-cache" })
+      .then((result) => loadVoucherInformation(result.data.getVouchers));
   };
+
+  async function deleteVoucher(tokenId) {
+    await apolloClient
+      .mutate({
+        mutation: DELETE_VOUCHER,
+        variables: { tokenId },
+      })
+      .then((result) => loadVoucherInformation(result.data.deleteVoucher));
+  }
+  function reloadVoucher() {
+    $loading(true);
+  }
+
   useEffect(async () => {
     await LoadNFTVouchers();
-    console.log("loading", loading);
+    // console.log("loading", loading);
     $loading(false);
   }, []);
 
   if (loading) return <p>Loading...</p>;
-  if (!items.length) return <p>Not any vouchers</p>;
-  console.log("items", items);
+  if (!voucherItems.length) return <p>Not any vouchers</p>;
+  // console.log("items", items);
 
-  return <ListNFTCard listItem={items} buyMarketItem="" type="mint" />;
+  return (
+    <ListNFTCard
+      listItem={voucherItems}
+      buyMarketItem={mintingVoucher}
+      type="mint"
+    />
+  );
 };
 
-const Home = ({ marketplace, nft }) => {
+const Home = ({ marketplace, nft, account, signer }) => {
   const [items, $items] = useState([]);
   const [loadingNFT, $loadingNFT] = useState(true);
 
   const loadMarketplaceItems = async () => {
     const itemCount = await marketplace.itemCount();
     let items = [];
-    console.log("itemCount ", itemCount);
+    // console.log("itemCount ", itemCount);
     for (let i = 1; i <= itemCount; i++) {
       // console.log("try load item", i);
       try {
@@ -92,7 +155,7 @@ const Home = ({ marketplace, nft }) => {
           const response = await fetch(uri);
           // console.log("response ", i, response);
           const metadata = await response.json();
-          console.log("json scheme:", metadata);
+          // console.log("json scheme:", metadata);
           // console.log("item", i, "json", metadata);
           // get total price of item (item price + fee)
           const totalPrice = await marketplace.getTotalPrice(item.itemId);
@@ -153,7 +216,7 @@ const Home = ({ marketplace, nft }) => {
       )}
       <h1>NFT VOUCHERS</h1>
       <div className="px-5 container">
-        <NFTVoucher />
+        <NFTVoucher nft={nft} signer={signer} />
       </div>
     </div>
   );

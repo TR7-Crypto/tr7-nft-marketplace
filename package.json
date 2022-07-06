@@ -40,6 +40,7 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "hardhat": "npx hardhat node",
+    "hardhat-test": "npx hardhat test",
     "deploy-local": "npx hardhat run src/backend/scripts/deploy-lazy-contract.js --network localhost",
     "deploy-ropsten": "npx hardhat run src/backend/scripts/deploy-lazy-contract.js --network ropsten",
     "deploy-rinkeby": "npx hardhat run src/backend/scripts/deploy-lazy-contract.js --network rinkeby",
