@@ -10,7 +10,7 @@
 //   },
 // };
 
-const { Voucher } = require("../models");
+const { Voucher, NFTVoucher } = require("../models");
 
 // Provide resolver functions for the GraphQL schema
 const resolvers = {
@@ -21,7 +21,10 @@ const resolvers = {
   Query: {
     getVouchers: async () => await Voucher.find({}),
     getVouchersByAccount: async (_, { account }) =>
-      await Voucher.find({ account: { account } }),
+      await Voucher.find({ account }),
+    getNFTVouchers: async () => await NFTVoucher.find({}),
+    getNFTVouchersByAccount: async (_, { owner }) =>
+      await NFTVoucher.find({ owner }),
   },
   /**
    * A GraphQL Mutation that provides functionality for adding post to
@@ -42,6 +45,77 @@ const resolvers = {
     deleteVoucher: async (_, { tokenId }) => {
       await Voucher.deleteOne({ tokenId: tokenId });
       return await Voucher.find({});
+    },
+    addNFTVoucher: async (
+      _,
+      {
+        owner,
+        nftTokenId,
+        status,
+        listedType,
+        price,
+        startingPrice,
+        endPrice,
+        duration,
+        listedTimeStamp,
+        signature,
+      }
+    ) => {
+      const newNFTVoucher = new NFTVoucher({
+        owner,
+        nftTokenId,
+        status,
+        listedType,
+        price,
+        startingPrice,
+        endPrice,
+        duration,
+        listedTimeStamp,
+        signature,
+      });
+      const savedNFTVoucher = await newNFTVoucher.save();
+      return savedNFTVoucher;
+    },
+    updateNFTVoucher: async (
+      _,
+      {
+        owner,
+        nftTokenId,
+        status,
+        listedType,
+        price,
+        startingPrice,
+        endPrice,
+        duration,
+        listedTimeStamp,
+        signature,
+      }
+    ) => {
+      const filter = { nftTokenId: nftTokenId };
+      const updateVoucher = {
+        owner,
+        nftTokenId,
+        status,
+        listedType,
+        price,
+        startingPrice,
+        endPrice,
+        duration,
+        listedTimeStamp,
+        signature,
+      };
+      const updatedNFTVoucher = await NFTVoucher.findOneAndUpdate(
+        filter,
+        updateVoucher,
+        {
+          new: true,
+        }
+      );
+      return updatedNFTVoucher;
+    },
+    deleteNFTVoucher: async (_, { tokenId }) => {
+      await NFTVoucher.deleteOne({ tokenId: tokenId });
+      return await NFTVoucher.find({});
     },
   },
 };

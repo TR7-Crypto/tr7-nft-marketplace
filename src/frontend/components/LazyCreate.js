@@ -154,7 +154,6 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
   };
 
   const createNFT = async () => {
-    console.log("create nft click");
     $mintState("uploading to IPFS...");
     await uploadToIPFS(file);
     $minting(true);
@@ -167,14 +166,13 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     ["tuple(uint256,uint256,string)"],
     [[voucher.tokenId, voucher.minPrice, voucher.uri]]
   );
-  console.log("payload", payload);
 
   async function createVoucher(tokenId, uri, minPrice = 0) {
     const voucher = { tokenId, minPrice, uri };
     const chainId = await window.ethereum.request({
       method: "eth_chainId",
     });
-    console.log("chainId", chainId);
+
     const domain = {
       name: SIGNING_DOMAIN_NAME,
       version: SIGNING_DOMAIN_VERSION,
@@ -189,22 +187,11 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
       ],
     };
     const signature = await signer._signTypedData(domain, types, voucher);
-    console.log("signature", signature);
+
     const signedVoucher = {
       ...voucher,
       signature,
     };
-    console.log("signedVoucher", signedVoucher);
-
-    // // verify redeem
-    // try {
-    //   let redeemTokenId = await (
-    //     await nft.redeem(account, signedVoucher)
-    //   ).wait();
-    //   console.log("redeemTokenId", redeemTokenId);
-    // } catch (error) {
-    //   console.log(error);
-    // }
 
     return signedVoucher;
   }
@@ -215,14 +202,10 @@ const LazyCreate = ({ marketplace, nft, account, signer }) => {
     // create NFT voucher and request for signing from wallet provider
     const mintingNFT = `creating NFT voucher...
     please sign message on metamask wallet`;
-    console.log("mintingNFT", mintingNFT);
     $mintState(mintingNFT);
-    const tokenId = createTokenId(uri); // should be random token id from uri
-    console.log("tokenId", tokenId);
+    const tokenId = createTokenId(uri);
     const minPrice = ethers.utils.parseEther(price);
-    console.log("create minPrice", minPrice);
     const signedVoucher = await createVoucher(tokenId, uri, minPrice);
-    console.log("signedVoucher", signedVoucher);
     $signedVoucher(signedVoucher);
     $submitVoucher(true);
     $mintState("");

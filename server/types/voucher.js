@@ -9,9 +9,24 @@ const typeDefs = gql`
     signature: String
     account: String
   }
+  type NFTVoucher {
+    owner: String
+    nftTokenId: String
+    status: String
+    listedType: String
+    price: String
+    startingPrice: String
+    endPrice: String
+    duration: String
+    listedTimeStamp: String
+    signature: String
+  }
+
   type Query {
     getVouchers: [Voucher]
     getVouchersByAccount(account: String!): [Voucher]!
+    getNFTVouchers: [NFTVoucher]
+    getNFTVouchersByAccount(owner: String!): [NFTVoucher]!
   }
   type Mutation {
     addVoucher(
@@ -22,6 +37,31 @@ const typeDefs = gql`
       account: String
     ): Voucher!
     deleteVoucher(tokenId: String): [Voucher]!
+    addNFTVoucher(
+      owner: String
+      nftTokenId: String
+      status: String
+      listedType: String
+      price: String
+      startingPrice: String
+      endPrice: String
+      duration: String
+      listedTimeStamp: String
+      signature: String
+    ): NFTVoucher!
+    updateNFTVoucher(
+      owner: String
+      nftTokenId: String
+      status: String
+      listedType: String
+      price: String
+      startingPrice: String
+      endPrice: String
+      duration: String
+      listedTimeStamp: String
+      signature: String
+    ): NFTVoucher!
+    deleteNFTVoucher(tokenId: String): [NFTVoucher]!
   }
 `;
 

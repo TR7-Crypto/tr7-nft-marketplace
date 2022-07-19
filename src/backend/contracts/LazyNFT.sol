@@ -13,7 +13,7 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     string private constant SIGNING_DOMAIN = "LazyNFT-Voucher";
     string private constant SIGNATURE_VERSION = "1";
-
+    uint256 public tokenCount;
     mapping(address => uint256) pendingWithdrawals;
 
     constructor(address payable minter)
@@ -44,28 +44,23 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
         returns (uint256)
     {
         // make sure signature is valid and get the address of the signer
-        address signer = _verify(voucher);
-
-        // // make sure that the signer is authorized to mint NFTs
-        // require(
-        //     hasRole(MINTER_ROLE, signer),
-        //     "Signature invalid or unauthorized"
-        // );
-
+        address payable signer = payable(_verify(voucher));
         // make sure that the redeemer is paying enough to cover the buyer's cost
         require(msg.value >= voucher.minPrice, "Insufficient funds to redeem");
-
+        // pay seller and feeAccount
+        signer.transfer(voucher.minPrice);
         // first assign the token to the signer, to establish provenance on-chain
-        _mint(signer, voucher.tokenId);
-        _setTokenURI(voucher.tokenId, voucher.uri);
-
+        tokenCount++;
+        _mint(signer, tokenCount);
+        _setTokenURI(tokenCount, voucher.uri);
         // transfer the token to the redeemer
-        _transfer(signer, redeemer, voucher.tokenId);
-
-        // record payment to signer's withdrawal balance
-        pendingWithdrawals[signer] += msg.value;
+        _transfer(signer, redeemer, tokenCount);
 
         return voucher.tokenId;
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return tokenCount;
     }
 
     /// @notice Transfers all pending withdrawal balance to the caller. Reverts if the caller is not an authorized minter.

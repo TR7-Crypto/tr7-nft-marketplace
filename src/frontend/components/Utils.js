@@ -1,0 +1,2 @@
+const SIGNING_DOMAIN_NAME = "LazyNFT-Voucher";
+const SIGNING_DOMAIN_VERSION = "1";

@@ -1,9 +1,18 @@
 // Show all NFTs (including vouchers) have listed status
-import React, { useState, useEffect, lazy } from "react";
-import { ethers, providers } from "ethers";
+import React, { useState, useEffect, useCallback, useContext } from "react";
+import { ethers } from "ethers";
 import ListNFTCard from "./GUI/Component/Section/ListNFTCard";
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { apolloClient } from "../../index";
+import { useNavigate } from "react-router-dom";
+import {
+  SET_ACTIVE_NFT_ITEM,
+  SET_ACTIVE_MARKET_ITEMS,
+  NFTItemContext,
+  NFTStatus,
+  NFTListedType,
+} from "../Provider/NFTItemProvider";
+
 export const HomePageSlag = "/tr7-nft-marketplace";
 
 const GET_VOUCHER = gql`
@@ -26,6 +35,23 @@ const DELETE_VOUCHER = gql`
       uri
       signature
       account
+    }
+  }
+`;
+
+const GET_NFT_ITEM_VOUCHER = gql`
+  query GetNFTVouchers {
+    getNFTVouchers {
+      owner
+      nftTokenId
+      status
+      listedType
+      price
+      startingPrice
+      endPrice
+      duration
+      listedTimeStamp
+      signature
     }
   }
 `;
@@ -72,9 +98,9 @@ const NFTVoucher = ({ nft, signer }) => {
   const loadVoucherInformation = async (result) => {
     // console.log("result", result);
     const vouchers = result;
-    console.log("vouchers", vouchers);
+    // console.log("vouchers", vouchers);
     const itemCount = vouchers.length;
-    console.log("voucher count", vouchers.length);
+    // console.log("voucher count", vouchers.length);
     let items = [];
     for (let i = 0; i < itemCount; i++) {
       const item = vouchers[i];
@@ -84,7 +110,7 @@ const NFTVoucher = ({ nft, signer }) => {
       // get total price of item (item price + fee)
       const totalPrice = item.minPrice; //TODO + fee
       // Add item to items array
-      items.push({
+      let nftItemData = {
         totalPrice,
         itemId: 1, //item.itemId, //TODO
         seller: item.account,
@@ -94,7 +120,10 @@ const NFTVoucher = ({ nft, signer }) => {
         type: metadata.type,
         externalLink: metadata.externalLink,
         voucher: item,
-      });
+      };
+      let nftItem = {};
+      nftItem.nftData = nftItemData;
+      items.push(nftItem);
     }
     $voucherItems(items);
   };
@@ -112,9 +141,6 @@ const NFTVoucher = ({ nft, signer }) => {
       })
       .then((result) => loadVoucherInformation(result.data.deleteVoucher));
   }
-  function reloadVoucher() {
-    $loading(true);
-  }
 
   useEffect(async () => {
     await LoadNFTVouchers();
@@ -130,63 +156,106 @@ const NFTVoucher = ({ nft, signer }) => {
     <ListNFTCard
       listItem={voucherItems}
       buyMarketItem={mintingVoucher}
-      type="mint"
+      type="voucher"
     />
   );
 };
 
 const Home = ({ marketplace, nft, account, signer }) => {
-  const [items, $items] = useState([]);
   const [loadingNFT, $loadingNFT] = useState(true);
+  const [nftItems, $nftItems] = useState([]);
+  const { state, dispatch } = useContext(NFTItemContext);
 
-  const loadMarketplaceItems = async () => {
-    const itemCount = await marketplace.itemCount();
-    let items = [];
-    // console.log("itemCount ", itemCount);
-    for (let i = 1; i <= itemCount; i++) {
-      // console.log("try load item", i);
-      try {
-        const item = await marketplace.items(i);
-        if (!item.sold) {
-          // get uri url from nft contract
-          const uri = await nft.tokenURI(item.tokenId);
-          // console.log("uri", uri);
-          // use uri to fetch the nft metadata stored on ipfs
+  const LoadListedNFTItems = async () => {
+    let listedItems = [];
+    await apolloClient
+      .query({
+        query: GET_NFT_ITEM_VOUCHER,
+        fetchPolicy: "no-cache",
+      })
+      .then(async (result) => {
+        const items = result.data.getNFTVouchers;
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const nftTokenId = ethers.BigNumber.from(item.nftTokenId);
+          const uri = await nft.tokenURI(nftTokenId);
           const response = await fetch(uri);
-          // console.log("response ", i, response);
-          const metadata = await response.json();
-          // console.log("json scheme:", metadata);
-          // console.log("item", i, "json", metadata);
+          const nftMetaData = await response.json();
           // get total price of item (item price + fee)
-          const totalPrice = await marketplace.getTotalPrice(item.itemId);
-          // console.log("item", i, "total price", totalPrice);
-          // Add item to items array
-          items.push({
+          // console.log("item", item);
+          const itemPrice =
+            Number(item.listedType) == NFTListedType.FixPrice
+              ? item.price
+              : item.startingPrice;
+          const totalPrice = ethers.utils.parseEther(itemPrice); //TODO + fee
+          let nftItemData = {
             totalPrice,
-            itemId: item.itemId,
-            seller: item.seller,
-            name: metadata.name,
-            description: metadata.description,
-            image: metadata.image,
-            type: metadata.type,
-            externalLink: metadata.externalLink,
-          });
+            price: "",
+            itemId: "",
+            nftTokenId: nftTokenId,
+            name: nftMetaData.name,
+            description: nftMetaData.description,
+            image: nftMetaData.image,
+            type: nftMetaData.type,
+            owner: item.owner,
+          };
+          let nftItem = item;
+          nftItem.nftData = nftItemData;
+          listedItems.push(nftItem);
         }
-      } catch (error) {
-        console.log("load item", i, "got error", error);
-      }
-    }
-    $items(items);
+      });
+    return listedItems;
+  };
+  const loadMarketplaceItems = async () => {
+    let listedNFTItems = await LoadListedNFTItems();
+    dispatch({
+      type: SET_ACTIVE_MARKET_ITEMS,
+      payload: listedNFTItems,
+    });
+    $nftItems(listedNFTItems);
     $loadingNFT(false);
   };
-  const buyMarketItem = async (item) => {
+  const buyMarketItem = async (nftItem) => {
+    console.log("nftItem", nftItem);
+    const item = nftItem.nftData;
     await (
       await marketplace.purchaseItem(item.itemId, { value: item.totalPrice })
     ).wait();
-    loadMarketplaceItems();
+    // update item status on server
+
+    await loadMarketplaceItems();
   };
-  useEffect(() => {
-    loadMarketplaceItems();
+
+  const navigate = useNavigate();
+  const nftItemClickHandler = useCallback(
+    (nftItem) => {
+      console.log("nftItem", nftItem);
+      console.log("nftItems", nftItems);
+
+      const nftTokenId = nftItem.nftTokenId;
+      const itemIndex = nftItems.findIndex((element) => {
+        if (element.nftData.nftTokenId == nftTokenId) {
+          return true;
+        }
+        return false;
+      });
+      const curItem = nftItems[itemIndex];
+      if (curItem.listedType == NFTListedType.FixPrice) {
+        buyMarketItem(curItem);
+      } else {
+        dispatch({
+          type: SET_ACTIVE_NFT_ITEM,
+          payload: curItem,
+        });
+        navigate(`${HomePageSlag}/nft-item-sale`, { replace: false });
+      }
+    },
+    [navigate, nftItems]
+  );
+
+  useEffect(async () => {
+    await loadMarketplaceItems();
+    $loadingNFT(false);
   }, []);
 
   if (loadingNFT) {
@@ -201,9 +270,13 @@ const Home = ({ marketplace, nft, account, signer }) => {
     <div className="flex justify-content">
       {/* <Button onClick={handleOpenseaIframe}>OpenSea.io</Button> */}
       <h1>NFTS FOR SALE</h1>
-      {items.length > 0 ? (
-        <div className="px-5 container">
-          <ListNFTCard listItem={items} buyMarketItem="" type="sale" />
+      {nftItems.length > 0 ? (
+        <div className="px-5 py-3 container">
+          <ListNFTCard
+            listItem={nftItems}
+            buyMarketItem={nftItemClickHandler}
+            type="nft"
+          />
         </div>
       ) : (
         <main

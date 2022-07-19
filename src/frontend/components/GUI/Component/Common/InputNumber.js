@@ -21,6 +21,8 @@ const InputNumber = ({
           onChange={onChangeHandler}
           size={size}
           type="number"
+          min="0"
+          required
           placeholder={description}
         />
       </Form.Group>
