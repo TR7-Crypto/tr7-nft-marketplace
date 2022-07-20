@@ -1,11 +1,17 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+//SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.0;
+pragma abicoder v2; // required to accept structs as function parameters
 
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract Marketplace is ReentrancyGuard {
+import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+
+contract LazyMarketplace is EIP712, ReentrancyGuard {
+    string private constant SIGNING_DOMAIN = "LazyNFT-Voucher";
+    string private constant SIGNATURE_VERSION = "1";
     address payable public immutable feeAccount; // the account that receives fees
     uint256 public immutable feePercent; // the fee percentage on sales
     uint256 public itemCount;
@@ -22,16 +28,16 @@ contract Marketplace is ReentrancyGuard {
         bytes signature;
     }
     event Bought(
-        address indexed nft,
         uint256 tokenId,
         uint256 price,
         address indexed seller,
         address indexed buyer
     );
-    // itemId -> Item
-    mapping(uint256 => Item) public items;
 
-    constructor(uint256 _feePercent) {
+    // itemId -> Item
+    // mapping(uint256 => Item) public items;
+
+    constructor(uint256 _feePercent) EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {
         feeAccount = payable(msg.sender);
         feePercent = _feePercent;
     }
@@ -70,40 +76,39 @@ contract Marketplace is ReentrancyGuard {
         return ECDSA.recover(digest, voucher.signature);
     }
 
-    function purchaseItem(address purchaser, NFTItemVoucher calldata voucher)
-        external
-        payable
-        nonReentrant
-    {
+    /// @notice Returns the chain id of the current blockchain.
+    /// @dev This is used to workaround an issue with ganache returning different values from the on-chain chainid() function and
+    ///  the eth_chainId RPC method. See https://github.com/protocol/nft-website/issues/121 for context.
+    function getChainID() external view returns (uint256) {
+        uint256 id;
+        assembly {
+            id := chainid()
+        }
+        return id;
+    }
+
+    // TODO: uint256 price, address nft, uint256 nftTokenId
+    function purchaseNFTItem(
+        NFTItemVoucher calldata voucher,
+        uint256 price,
+        address nft,
+        uint256 nftTokenId
+    ) external payable nonReentrant {
         // make sure signature is valid and get the address of the signer
         address payable signer = payable(_verify(voucher));
-
-        Item storage item = Item(
-            _nft,
-            _tokenId,
-            _price,
-            payable(msg.sender),
-            false
-        );
-        uint256 _totalPrice = (item.price * (100 + feePercent)) / 100;
         require(
-            msg.value >= _totalPrice,
+            msg.value >= price,
             "not enough ETH to cover item price and market fee"
         );
-        require(!item.sold, "item already sold");
+        IERC721 _nft = IERC721(nft);
+        // uint256 _totalPrice = (price * (100 + feePercent)) / 100;
+        uint256 marketFee = (feePercent * price) / 100;
         // pay seller and feeAccount
-        item.seller.transfer(item.price);
-        feeAccount.transfer(_totalPrice - item.price);
+        signer.transfer(price - marketFee);
+        feeAccount.transfer(marketFee);
         // transfer nft to buyer
-        item.nft.transferFrom(address(this), msg.sender, item.tokenId);
+        _nft.transferFrom(signer, msg.sender, nftTokenId);
         // emit bought event
-        emit Bought(
-            _itemId,
-            address(item.nft),
-            item.tokenId,
-            item.price,
-            item.seller,
-            msg.sender
-        );
+        emit Bought(nftTokenId, price, signer, msg.sender);
     }
 }

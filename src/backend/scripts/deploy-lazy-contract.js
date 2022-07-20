@@ -7,14 +7,14 @@ async function main() {
   // deploy contracts here:
   const NFT = await ethers.getContractFactory("LazyNFT");
   const nft = await NFT.deploy(deployer.address);
-  const Marketplace = await ethers.getContractFactory("Marketplace");
-  const marketplace = await Marketplace.deploy(2);
+  const LazyMarketplace = await ethers.getContractFactory("LazyMarketplace");
+  const marketplace = await LazyMarketplace.deploy(2); //2 pecent
 
   console.log("LazyNFT contract address", nft.address);
-  console.log("Marketplace contract address", marketplace.address);
+  console.log("LazyMarketplace contract address", marketplace.address);
   // For each contract, pass the deployed contract and name to this function to save a copy of the contract ABI and address to the front end.
   saveFrontendFiles(nft, "LazyNFT");
-  saveFrontendFiles(marketplace, "Marketplace");
+  saveFrontendFiles(marketplace, "LazyMarketplace");
 }
 
 function saveFrontendFiles(contract, name) {

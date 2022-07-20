@@ -296,7 +296,7 @@ const LazyMyNFTs = ({ marketplace, nft, account, signer }) => {
               <ListNFTCard
                 listItem={nftItems}
                 buyMarketItem={mintedNFTClickHandler}
-                type="nft"
+                type="my-nft"
               />
             </div>
           )}

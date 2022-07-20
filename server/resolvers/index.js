@@ -113,8 +113,8 @@ const resolvers = {
       );
       return updatedNFTVoucher;
     },
-    deleteNFTVoucher: async (_, { tokenId }) => {
-      await NFTVoucher.deleteOne({ tokenId: tokenId });
+    deleteNFTVoucher: async (_, { nftTokenId }) => {
+      await NFTVoucher.deleteOne({ nftTokenId: nftTokenId });
       return await NFTVoucher.find({});
     },
   },

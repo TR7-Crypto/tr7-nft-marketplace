@@ -4,8 +4,8 @@ import "./App.css";
 
 import { ethers } from "ethers";
 import { useState } from "react";
-import MarketplaceAbi from "../contractsData/Marketplace.json";
-import MarketplaceAddress from "../contractsData/Marketplace-address.json";
+import MarketplaceAbi from "../contractsData/LazyMarketplace.json";
+import MarketplaceAddress from "../contractsData/LazyMarketplace-address.json";
 import NFTAbi from "../contractsData/LazyNFT.json";
 import NFTAddress from "../contractsData/LazyNFT-address.json";
 

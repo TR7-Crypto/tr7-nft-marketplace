@@ -14,10 +14,25 @@ const ListNFTCard = ({ listItem, buyMarketItem, type }) => {
           footer = `Mint for ${ethers.utils.formatEther(
             nftCardItem.totalPrice
           )} ETH`;
-        } else {
+        } else if (type === "my-nft") {
+          console.log("item.listedType", item.listedType);
           if (item.listedType == NFTListedType.NotListed) {
             footer = `List for Sale`;
           } else if (item.listedType == NFTListedType.FixPrice) {
+            footer = `Listed for ${ethers.utils.formatEther(
+              nftCardItem.totalPrice
+            )} ETH`;
+          } else if (item.listedType == NFTListedType.AuctionHighest) {
+            footer = `Listed as highest bid with start price ${ethers.utils.formatEther(
+              nftCardItem.totalPrice
+            )} ETH`;
+          } else {
+            footer = `Listed as declining with start price ${ethers.utils.formatEther(
+              nftCardItem.totalPrice
+            )} ETH`;
+          }
+        } else {
+          if (item.listedType == NFTListedType.FixPrice) {
             footer = `Buy for ${ethers.utils.formatEther(
               nftCardItem.totalPrice
             )} ETH`;

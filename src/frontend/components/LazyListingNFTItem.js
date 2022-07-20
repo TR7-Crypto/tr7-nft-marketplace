@@ -68,13 +68,6 @@ const ADD_NFT_VOUCHER = gql`
 // jump to item page or home page
 
 const ListingComponent = ({ marketFee, onPriceChange, onSubmit }) => {
-  const [type, $type] = useState("fix");
-  const [auctionType, $auctionType] = useState("highestBid");
-  const [price, $price] = useState("");
-  const [startPrice, $startPrice] = useState("");
-  const [endPrice, $endPrice] = useState("");
-  const [duration, $duration] = useState("");
-
   const radios = [
     { name: "Fixed Price", value: "fix" },
     { name: "Timed Auction", value: "auction" },
@@ -83,6 +76,13 @@ const ListingComponent = ({ marketFee, onPriceChange, onSubmit }) => {
     "Sell to highest bidder",
     "Sell with declining price",
   ];
+  const [type, $type] = useState("fix");
+  const [auctionType, $auctionType] = useState(AuctionTypeList[0]);
+  const [price, $price] = useState("");
+  const [startPrice, $startPrice] = useState("");
+  const [endPrice, $endPrice] = useState("");
+  const [duration, $duration] = useState("");
+
   const onSubmitHandler = (event) => {
     event.preventDefault();
     const listingParam = {
@@ -152,6 +152,7 @@ const ListingComponent = ({ marketFee, onPriceChange, onSubmit }) => {
               label="Method"
               labelDes=""
               onChangeHandler={(e) => {
+                console.log("e.target", e.target);
                 $auctionType(e.target.value);
               }}
               items={AuctionTypeList}
@@ -241,6 +242,7 @@ const SubmitNFTVoucher = ({
     const SIGNING_DOMAIN_NAME = "LazyNFT-Voucher";
     const SIGNING_DOMAIN_VERSION = "1";
     const voucher = { ...nftVoucher };
+    console.log("nftItemVoucher", voucher);
     const chainId = await window.ethereum.request({
       method: "eth_chainId",
     });
@@ -316,6 +318,8 @@ const LazyListingNFTItem = ({ marketplace, nft, account, signer }) => {
   }
 
   function onSubmit(listingParam) {
+    console.log("listingParam.type", listingParam.type);
+    console.log("listingParam.auctionType", listingParam.auctionType);
     const listedType =
       listingParam.type === "fix"
         ? NFTListedType.FixPrice

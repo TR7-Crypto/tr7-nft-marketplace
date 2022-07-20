@@ -61,7 +61,7 @@ const typeDefs = gql`
       listedTimeStamp: String
       signature: String
     ): NFTVoucher!
-    deleteNFTVoucher(tokenId: String): [NFTVoucher]!
+    deleteNFTVoucher(nftTokenId: String): [NFTVoucher]!
   }
 `;
 

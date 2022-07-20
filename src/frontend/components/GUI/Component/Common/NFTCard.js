@@ -7,7 +7,7 @@ import ReactPlayer from "react-player/lazy";
 import Frame3D from "./Frame3D";
 import TR7Logo from "../../../tr7-logo-001.png";
 import CardMedia from "./CardMedia";
-import WalletAddress from "./WalletAddress";
+import WalletAddress from "../WalletAddress";
 
 const NFTCard = ({ item, buyMarketItem }) => {
   const itemData = item.nftData;

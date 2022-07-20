@@ -3,7 +3,7 @@ import { Navbar, Nav, Button, Container } from "react-bootstrap";
 import market from "./tr7-logo-001.png";
 import { Link } from "react-router-dom";
 import { HomePageSlag } from "./Home";
-import WalletAddress from "./GUI/Component/Common/WalletAddress";
+import WalletAddress from "./GUI/Component/WalletAddress";
 
 const Navigation = ({ web3Handler, account }) => {
   return (

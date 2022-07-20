@@ -55,6 +55,22 @@ const GET_NFT_ITEM_VOUCHER = gql`
     }
   }
 `;
+const DELETE_NFT_VOUCHER = gql`
+  mutation DeleteVoucher($nftTokenId: String) {
+    deleteNFTVoucher(nftTokenId: $nftTokenId) {
+      owner
+      nftTokenId
+      status
+      listedType
+      price
+      startingPrice
+      endPrice
+      duration
+      listedTimeStamp
+      signature
+    }
+  }
+`;
 
 const NFTVoucher = ({ nft, signer }) => {
   const [loading, $loading] = useState(true);
@@ -178,30 +194,33 @@ const Home = ({ marketplace, nft, account, signer }) => {
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
           const nftTokenId = ethers.BigNumber.from(item.nftTokenId);
-          const uri = await nft.tokenURI(nftTokenId);
-          const response = await fetch(uri);
-          const nftMetaData = await response.json();
-          // get total price of item (item price + fee)
-          // console.log("item", item);
-          const itemPrice =
-            Number(item.listedType) == NFTListedType.FixPrice
-              ? item.price
-              : item.startingPrice;
-          const totalPrice = ethers.utils.parseEther(itemPrice); //TODO + fee
-          let nftItemData = {
-            totalPrice,
-            price: "",
-            itemId: "",
-            nftTokenId: nftTokenId,
-            name: nftMetaData.name,
-            description: nftMetaData.description,
-            image: nftMetaData.image,
-            type: nftMetaData.type,
-            owner: item.owner,
-          };
-          let nftItem = item;
-          nftItem.nftData = nftItemData;
-          listedItems.push(nftItem);
+          const blExist = true; //nft._exists(nftTokenId);
+          if (blExist) {
+            const uri = await nft.tokenURI(nftTokenId);
+            const response = await fetch(uri);
+            const nftMetaData = await response.json();
+            // get total price of item (item price + fee)
+            // console.log("item", item);
+            const itemPrice =
+              Number(item.listedType) == NFTListedType.FixPrice
+                ? item.price
+                : item.startingPrice;
+            const totalPrice = ethers.utils.parseEther(itemPrice); //TODO + fee
+            let nftItemData = {
+              totalPrice,
+              price: "",
+              itemId: "",
+              nftTokenId: nftTokenId,
+              name: nftMetaData.name,
+              description: nftMetaData.description,
+              image: nftMetaData.image,
+              type: nftMetaData.type,
+              owner: item.owner,
+            };
+            let nftItem = item;
+            nftItem.nftData = nftItemData;
+            listedItems.push(nftItem);
+          }
         }
       });
     return listedItems;
@@ -217,11 +236,56 @@ const Home = ({ marketplace, nft, account, signer }) => {
   };
   const buyMarketItem = async (nftItem) => {
     console.log("nftItem", nftItem);
-    const item = nftItem.nftData;
+    const nftItemVoucher = {
+      owner: nftItem.owner,
+      nftTokenId: nftItem.nftTokenId,
+      status: nftItem.status,
+      listedType: nftItem.listedType,
+      price: nftItem.price,
+      startingPrice: nftItem.startingPrice,
+      endPrice: nftItem.endPrice,
+      duration: nftItem.duration,
+      signature: nftItem.signature,
+    };
+    console.log("nftItemVoucher", nftItemVoucher);
+    const price = ethers.utils.parseEther(nftItem.price);
+    const nftTokenId = ethers.BigNumber.from(nftItemVoucher.nftTokenId);
+    const feePercent = await marketplace.feePercent();
+    const numberPrice = parseInt(nftItem.price);
+    const percent = 100 + feePercent.toNumber();
+    const numberTotalPriceWithPercent = numberPrice * percent;
+    const numberTotalPrice = numberTotalPriceWithPercent / 100;
+    const strTotalPrice = numberTotalPrice.toString();
+    const totalPrice = ethers.utils.parseEther(strTotalPrice);
+    console.log(
+      "feePercent",
+      feePercent,
+      "percent",
+      percent,
+      "numberTotalPriceWithPercent",
+      numberTotalPriceWithPercent,
+      "numberTotalPrice",
+      numberTotalPrice
+    );
     await (
-      await marketplace.purchaseItem(item.itemId, { value: item.totalPrice })
+      await marketplace.purchaseNFTItem(
+        nftItemVoucher,
+        price,
+        nft.address,
+        nftTokenId,
+        { value: price }
+      )
     ).wait();
     // update item status on server
+    const nftTokenIdStr = nftItemVoucher.nftTokenId;
+    await apolloClient
+      .mutate({
+        mutation: DELETE_NFT_VOUCHER,
+        variables: { nftTokenId: nftTokenIdStr },
+      })
+      .then((result) => {
+        // loadVoucherInformation(result.data.deleteVoucher)
+      });
 
     await loadMarketplaceItems();
   };
@@ -275,7 +339,7 @@ const Home = ({ marketplace, nft, account, signer }) => {
           <ListNFTCard
             listItem={nftItems}
             buyMarketItem={nftItemClickHandler}
-            type="nft"
+            type="market-nft"
           />
         </div>
       ) : (
